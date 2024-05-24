@@ -1,0 +1,10 @@
+help - Get help and information about available commands
+signup - Register a new account
+login - Log in to an account
+logout - Log out of the current account
+home - Display the current home currency
+chhome - Update the home currency to a different one
+pair - Show the default currency pair for exchange rate queries
+chpair - Modify the default currency pair for exchange rate queries
+rate - Fetch the current exchange rate for a specified currency pair and amount (optional)
+history - Retrieve exchange rate history for a specified period and a currency/pair (optional)
