@@ -7,8 +7,10 @@ import org.example.dbService.BusinessLogicService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -31,7 +33,6 @@ public class ApplicationConfig {
     @Bean
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-//        dataSource.setDriverClassName("org.h2.Driver");
         dataSource.setUrl(dataSourceUrl);
         dataSource.setUsername(dataSourceUsername);
         dataSource.setPassword(dataSourcePassword);
@@ -39,8 +40,14 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public DatabaseConfig databaseConfig(DataSource dataSource, ResourceLoader resourceLoader) {
-        return new DatabaseConfig(dataSource, resourceLoader);
+    @DependsOn("databaseConfig")
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
+    @Bean
+    public DatabaseConfig databaseConfig(ResourceLoader resourceLoader) {
+        return new DatabaseConfig(dataSourceUrl, dataSourceUsername, dataSourcePassword, resourceLoader);
     }
 
     @Bean
@@ -49,8 +56,8 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public DatabaseService databaseService() {
-        return new DatabaseService(dataSourceUrl, dataSourceUsername, dataSourcePassword);
+    public DatabaseService databaseService(JdbcTemplate jdbcTemplate) {
+        return new DatabaseService(jdbcTemplate);
     }
 
     @Bean
