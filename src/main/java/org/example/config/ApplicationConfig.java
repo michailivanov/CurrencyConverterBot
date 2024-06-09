@@ -1,8 +1,9 @@
 package org.example.config;
 
+import org.example.dbService.DatabaseService;
 import org.example.telegram.MyBot;
 import org.example.controller.WebhookController;
-import org.example.dbService.DatabaseService;
+import org.example.dbService.BusinessLogicService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,17 +49,18 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public DatabaseService databaseService(
-            @Value("${spring.datasource.url}") String jdbcUrl,
-            @Value("${spring.datasource.username}") String username,
-            @Value("${spring.datasource.password}") String password,
-            @Value("${currenciesRateApiUrl}") String currenciesRateApiUrl) {
-        return new DatabaseService(jdbcUrl, username, password, currenciesRateApiUrl);
+    public DatabaseService databaseService() {
+        return new DatabaseService(dataSourceUrl, dataSourceUsername, dataSourcePassword);
     }
 
     @Bean
-    public MyBot myBot(@Value("${bot.token}") String botToken, @Value("${bot.username}") String botUsername, DatabaseService databaseService) {
-        return new MyBot(botToken, botUsername, databaseService);
+    public BusinessLogicService businessLogicService(DatabaseService databaseService, @Value("${currenciesRateApiUrl}") String currenciesRateApiUrl) {
+        return new BusinessLogicService(databaseService, currenciesRateApiUrl);
+    }
+
+    @Bean
+    public MyBot myBot(@Value("${bot.token}") String botToken, @Value("${bot.username}") String botUsername, BusinessLogicService businessLogicService) {
+        return new MyBot(botToken, botUsername, businessLogicService);
     }
 
     @Bean

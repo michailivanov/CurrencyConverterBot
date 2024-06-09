@@ -1,7 +1,7 @@
 package org.example.telegram;
 
 import org.example.util.InputValidator;
-import org.example.dbService.DatabaseService;
+import org.example.dbService.BusinessLogicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
@@ -14,15 +14,15 @@ import java.util.Map;
 public class MyBot extends TelegramWebhookBot {
     private String botToken;
     private String botUsername;
-    private final DatabaseService databaseService;
+    private final BusinessLogicService businessLogicService;
     private Map<String, String> commandUsageMap;
     private Map<String, String> commandInfo;
     private Logger logger;
 
-    public MyBot(String botToken, String botUsername, DatabaseService databaseService) {
+    public MyBot(String botToken, String botUsername, BusinessLogicService businessLogicService) {
         this.botToken = botToken;
         this.botUsername = botUsername;
-        this.databaseService = databaseService;
+        this.businessLogicService = businessLogicService;
         this.logger = LoggerFactory.getLogger(MyBot.class);
 
         commandUsageMap = new HashMap<>();
@@ -156,7 +156,7 @@ public class MyBot extends TelegramWebhookBot {
             String password = inputParts[2];
             String defaultPairFrom = inputParts[3];
             String defaultPairTo = inputParts[4];
-            databaseService.signUp(tgUsername, username, password, defaultPairFrom, defaultPairTo);
+            businessLogicService.signUp(tgUsername, username, password, defaultPairFrom, defaultPairTo);
             return "Sign up successful!";
         } else {
             return "Usage: " + commandUsageMap.get(inputParts[0]);
@@ -167,7 +167,7 @@ public class MyBot extends TelegramWebhookBot {
         if (inputParts.length == 3) {
             String username = inputParts[1];
             String password = inputParts[2];
-            databaseService.logIn(tgUsername, username, password);
+            businessLogicService.logIn(tgUsername, username, password);
             return "Log in successful!";
         } else {
             return "Usage: " + commandUsageMap.get(inputParts[0]);
@@ -175,13 +175,13 @@ public class MyBot extends TelegramWebhookBot {
     }
 
     private String handleLogout(String tgUsername) throws SendToUserException, SQLException {
-        databaseService.logOut(tgUsername);
+        businessLogicService.logOut(tgUsername);
         return "Log out successful!";
     }
 
     private String getHomeCurrencyMessage(String tgUsername, String[] inputParts) throws SendToUserException, SQLException {
         if(inputParts.length == 1) {
-            String homeCurrency = databaseService.getHomeCurrency(tgUsername);
+            String homeCurrency = businessLogicService.getHomeCurrency(tgUsername);
             return "Your home currency is " + homeCurrency;
         } else {
             return "Usage: " + commandUsageMap.get(inputParts[0]);
@@ -190,7 +190,7 @@ public class MyBot extends TelegramWebhookBot {
 
     private String getDefaultPairMessage(String tgUsername, String[] inputParts) throws SendToUserException, SQLException {
         if(inputParts.length == 1) {
-            String currencyPair = databaseService.getDefaultPair(tgUsername);
+            String currencyPair = businessLogicService.getDefaultPair(tgUsername);
             return "Your currency pair is " + currencyPair;
         } else {
             return "Usage: " + commandUsageMap.get(inputParts[0]);
@@ -199,9 +199,9 @@ public class MyBot extends TelegramWebhookBot {
 
     private String handleChangeHomeCurrency(String tgUsername, String[] inputParts) throws SendToUserException, SQLException {
         if(inputParts.length == 2) {
-            String prevCur = databaseService.getHomeCurrency(tgUsername);
-            databaseService.chHomeCurrency(tgUsername, inputParts[1]);
-            return "Your home currency has been successfully changed: " + prevCur + " -> " + databaseService.getHomeCurrency(tgUsername);
+            String prevCur = businessLogicService.getHomeCurrency(tgUsername);
+            businessLogicService.chHomeCurrency(tgUsername, inputParts[1]);
+            return "Your home currency has been successfully changed: " + prevCur + " -> " + businessLogicService.getHomeCurrency(tgUsername);
         } else {
             return "Usage: " + commandUsageMap.get(inputParts[0]);
         }
@@ -209,7 +209,7 @@ public class MyBot extends TelegramWebhookBot {
 
     private String handleChangeDefaultPair(String tgUsername, String[] inputParts) throws SendToUserException, SQLException {
         if(inputParts.length == 3) {
-            databaseService.chDefaultPair(tgUsername, inputParts[1], inputParts[2]);
+            businessLogicService.chDefaultPair(tgUsername, inputParts[1], inputParts[2]);
             return "Your default pair has been successfully changed";
         } else {
             return "Usage: " + commandUsageMap.get(inputParts[0]);
@@ -218,26 +218,26 @@ public class MyBot extends TelegramWebhookBot {
 
     private String handleExchangeRate(String tgUsername, String[] inputParts) throws SendToUserException, SQLException {
         if (inputParts.length == 4) {
-            String convResult = databaseService.getExchangeRate(tgUsername, inputParts[1], inputParts[2], inputParts[3]);
+            String convResult = businessLogicService.getExchangeRate(tgUsername, inputParts[1], inputParts[2], inputParts[3]);
             return inputParts[3] + " " + inputParts[1] + " = " + convResult + " " + inputParts[2];
 
         } else if (inputParts.length == 3 && InputValidator.isNumeric(inputParts[2])) {
-            String convResult = databaseService.getExchangeRate(tgUsername, null, inputParts[1], inputParts[2]);
-            return inputParts[2] + " " + databaseService.getHomeCurrency(tgUsername) + " = " + convResult + " " + inputParts[1];
+            String convResult = businessLogicService.getExchangeRate(tgUsername, null, inputParts[1], inputParts[2]);
+            return inputParts[2] + " " + businessLogicService.getHomeCurrency(tgUsername) + " = " + convResult + " " + inputParts[1];
 
         } else if (inputParts.length == 3 && InputValidator.isCurrency(inputParts[2])) {
-            String convResult = databaseService.getExchangeRate(tgUsername, inputParts[1], inputParts[2], null);
+            String convResult = businessLogicService.getExchangeRate(tgUsername, inputParts[1], inputParts[2], null);
             return "1.00 " + inputParts[1] + " = " + convResult + " " + inputParts[2];
 
         } else if (inputParts.length == 2 && InputValidator.isNumeric(inputParts[1])) {
-            String convResult = databaseService.getExchangeRate(tgUsername, null, null, inputParts[1]);
-            return inputParts[1] + " " + databaseService.getHomeCurrency(tgUsername) + " = " + convResult + " " + databaseService.getDefaultToCurrency(tgUsername);
+            String convResult = businessLogicService.getExchangeRate(tgUsername, null, null, inputParts[1]);
+            return inputParts[1] + " " + businessLogicService.getHomeCurrency(tgUsername) + " = " + convResult + " " + businessLogicService.getDefaultToCurrency(tgUsername);
         } else if (inputParts.length == 2 && InputValidator.isCurrency(inputParts[1])) {
-            String convResult = databaseService.getExchangeRate(tgUsername, null, inputParts[1], null);
-            return "1.00 " + databaseService.getHomeCurrency(tgUsername) + " = " + convResult + " " + inputParts[1];
+            String convResult = businessLogicService.getExchangeRate(tgUsername, null, inputParts[1], null);
+            return "1.00 " + businessLogicService.getHomeCurrency(tgUsername) + " = " + convResult + " " + inputParts[1];
         } else if (inputParts.length == 1) {
-            String convResult = databaseService.getExchangeRate(tgUsername, null, null, null);
-            return "1.00 " + databaseService.getHomeCurrency(tgUsername) + " = " + convResult + " " + databaseService.getDefaultToCurrency(tgUsername);
+            String convResult = businessLogicService.getExchangeRate(tgUsername, null, null, null);
+            return "1.00 " + businessLogicService.getHomeCurrency(tgUsername) + " = " + convResult + " " + businessLogicService.getDefaultToCurrency(tgUsername);
         } else {
             return "Usage: " + commandUsageMap.get(inputParts[0]);
         }
@@ -245,19 +245,19 @@ public class MyBot extends TelegramWebhookBot {
 
     private String handleHistory(String tgUsername, String[] inputParts) throws SendToUserException, SQLException {
         if (inputParts.length == 1) {
-            return databaseService.getHistory(tgUsername, null, null, null, null);
+            return businessLogicService.getHistory(tgUsername, null, null, null, null);
         } else if (inputParts.length == 2 && InputValidator.isCurrency(inputParts[1])) {
-            return databaseService.getHistory(tgUsername, null, null, inputParts[1], null);
+            return businessLogicService.getHistory(tgUsername, null, null, inputParts[1], null);
         } else if (inputParts.length == 3 && InputValidator.isCurrency(inputParts[1]) && InputValidator.isCurrency(inputParts[2])) {
-            return databaseService.getHistory(tgUsername, null, null, inputParts[1], inputParts[2]);
+            return businessLogicService.getHistory(tgUsername, null, null, inputParts[1], inputParts[2]);
         } else if (inputParts.length == 3 && InputValidator.isDate(inputParts[1]) && InputValidator.isDate(inputParts[2])) {
-            return databaseService.getHistory(tgUsername, inputParts[1], inputParts[2], null, null);
+            return businessLogicService.getHistory(tgUsername, inputParts[1], inputParts[2], null, null);
         } else if (inputParts.length == 4 && InputValidator.isDate(inputParts[1]) && InputValidator.isDate(inputParts[2])
                 && InputValidator.isCurrency(inputParts[3])) {
-            return databaseService.getHistory(tgUsername, inputParts[1], inputParts[2], inputParts[3], null);
+            return businessLogicService.getHistory(tgUsername, inputParts[1], inputParts[2], inputParts[3], null);
         } else if (inputParts.length == 5 && InputValidator.isDate(inputParts[1]) && InputValidator.isDate(inputParts[2])
                 && InputValidator.isCurrency(inputParts[3]) && InputValidator.isCurrency(inputParts[4])) {
-            return databaseService.getHistory(tgUsername, inputParts[1], inputParts[2], inputParts[3], inputParts[4]);
+            return businessLogicService.getHistory(tgUsername, inputParts[1], inputParts[2], inputParts[3], inputParts[4]);
         } else {
             return "Usage: " + commandUsageMap.get(inputParts[0]);
         }
