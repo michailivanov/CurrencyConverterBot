@@ -1,6 +1,7 @@
-package org.example.businessLogicService;
+package edu.JavaCourse.CurrencyConverterBot.businessLogicService;
 
-import org.example.telegram.SendToUserException;
+import edu.JavaCourse.CurrencyConverterBot.dbService.DatabaseService;
+import edu.JavaCourse.CurrencyConverterBot.telegram.SendToUserException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,6 @@ import org.apache.commons.codec.digest.DigestUtils; // for sha256Hex
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import org.example.dbService.DatabaseService;
 
 import java.sql.SQLException;
 

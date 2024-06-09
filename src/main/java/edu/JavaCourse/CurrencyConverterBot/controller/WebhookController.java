@@ -1,6 +1,6 @@
-package org.example.controller;
+package edu.JavaCourse.CurrencyConverterBot.controller;
 
-import org.example.telegram.MyBot;
+import edu.JavaCourse.CurrencyConverterBot.telegram.MyBot;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

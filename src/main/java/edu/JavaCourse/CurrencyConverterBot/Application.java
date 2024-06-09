@@ -1,8 +1,8 @@
-package org.example;
+package edu.JavaCourse.CurrencyConverterBot;
 
-import org.example.config.ApplicationConfig;
-import org.example.controller.WebhookController;
-import org.example.telegram.MyBot;
+import edu.JavaCourse.CurrencyConverterBot.config.ApplicationConfig;
+import edu.JavaCourse.CurrencyConverterBot.controller.WebhookController;
+import edu.JavaCourse.CurrencyConverterBot.telegram.MyBot;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;

@@ -114,7 +114,7 @@
             <manifest>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>org.example.Application</mainClass>
+              <mainClass>edu.JavaCourse.CurrencyConverterBot.Application</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -128,7 +128,7 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <mainClass>org.example.Application</mainClass>
+              <mainClass>edu.JavaCourse.CurrencyConverterBot.Application</mainClass>
             </manifest>
           </archive>
         </configuration>

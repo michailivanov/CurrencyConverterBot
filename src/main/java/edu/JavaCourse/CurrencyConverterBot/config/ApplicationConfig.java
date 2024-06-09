@@ -1,9 +1,9 @@
-package org.example.config;
+package edu.JavaCourse.CurrencyConverterBot.config;
 
-import org.example.dbService.DatabaseService;
-import org.example.telegram.MyBot;
-import org.example.controller.WebhookController;
-import org.example.businessLogicService.BusinessLogicService;
+import edu.JavaCourse.CurrencyConverterBot.dbService.DatabaseService;
+import edu.JavaCourse.CurrencyConverterBot.telegram.MyBot;
+import edu.JavaCourse.CurrencyConverterBot.controller.WebhookController;
+import edu.JavaCourse.CurrencyConverterBot.businessLogicService.BusinessLogicService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

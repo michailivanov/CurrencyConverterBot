@@ -1,4 +1,4 @@
-package org.example.dbService;
+package edu.JavaCourse.CurrencyConverterBot.dbService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

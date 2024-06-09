@@ -1,7 +1,7 @@
-package org.example.telegram;
+package edu.JavaCourse.CurrencyConverterBot.telegram;
 
-import org.example.util.InputValidator;
-import org.example.businessLogicService.BusinessLogicService;
+import edu.JavaCourse.CurrencyConverterBot.util.InputValidator;
+import edu.JavaCourse.CurrencyConverterBot.businessLogicService.BusinessLogicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
