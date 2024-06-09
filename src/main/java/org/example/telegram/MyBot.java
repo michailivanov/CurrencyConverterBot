@@ -1,7 +1,7 @@
 package org.example.telegram;
 
 import org.example.util.InputValidator;
-import org.example.dbService.BusinessLogicService;
+import org.example.businessLogicService.BusinessLogicService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;

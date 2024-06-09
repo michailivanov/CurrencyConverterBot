@@ -3,7 +3,7 @@ package org.example.config;
 import org.example.dbService.DatabaseService;
 import org.example.telegram.MyBot;
 import org.example.controller.WebhookController;
-import org.example.dbService.BusinessLogicService;
+import org.example.businessLogicService.BusinessLogicService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

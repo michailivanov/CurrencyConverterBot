@@ -1,29 +1,23 @@
-package org.example.dbService;
+package org.example.businessLogicService;
 
 import org.example.telegram.SendToUserException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.apache.commons.codec.digest.DigestUtils; // for sha256Hex
 
-import java.sql.*;
-import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import org.example.dbService.DatabaseService;
-import org.example.telegram.SendToUserException;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.sql.SQLException;
 
 public class BusinessLogicService {
     private final String currenciesRateApiUrl;
     private final DatabaseService databaseService;
+    private final Logger logger = LoggerFactory.getLogger(BusinessLogicService.class);
 
     public BusinessLogicService(
             DatabaseService databaseService,
@@ -33,13 +27,17 @@ public class BusinessLogicService {
     }
 
     public void signUp(String tgUsername, String username, String password, String defaultPairFrom, String defaultPairTo) throws SendToUserException, SQLException {
+        logger.info("Signing up user with tgUsername: {}, username: {}, defaultPairFrom: {}, defaultPairTo: {}", tgUsername, username, defaultPairFrom, defaultPairTo);
+
         // Check that tgUsername is not already logged in
         if (databaseService.getUserIdIfLoggedIn(tgUsername) != null) {
+            logger.info("FAILED(user already logged in): Signing up user with tgUsername: {}, username: {}, defaultPairFrom: {}, defaultPairTo: {}", tgUsername, username, defaultPairFrom, defaultPairTo);
             throw new SendToUserException("You are already logged in!");
         }
 
         // Check if username already exists
         if (databaseService.getUserIdIfExists(username) != null) {
+            logger.info("FAILED(username is already exists): Signing up user with tgUsername: {}, username: {}, defaultPairFrom: {}, defaultPairTo: {}", tgUsername, username, defaultPairFrom, defaultPairTo);
             throw new SendToUserException("This username already exists!");
         }
 
@@ -53,24 +51,31 @@ public class BusinessLogicService {
         // Verify that user created
         Long userId = databaseService.getUserIdIfExists(username);
         if (userId == null) {
+            logger.error("FAILED(internalError): Signing up user with tgUsername: {}, username: {}, defaultPairFrom: {}, defaultPairTo: {}", tgUsername, username, defaultPairFrom, defaultPairTo);
             throw new SendToUserException("Internal error: User hasn't created");
         }
 
         // Log in this user
         databaseService.logInUser(userId, tgUsername);
+
+        logger.info("SUCCESS: User {} successfully signed up", username);
     }
 
     public void logIn(String tgUsername, String username, String password) throws SendToUserException, SQLException {
+        logger.info("Logging in user with tgUsername: {}, username: {}", tgUsername, username);
+
         String passwordHash = DigestUtils.sha256Hex(password);
 
         // Check that tgUsername is not logged in
         if (databaseService.getUserIdIfLoggedIn(tgUsername) != null) {
+            logger.info("FAILED(user already logged in): Logging in user with tgUsername: {}, username: {}", tgUsername, username);
             throw new SendToUserException("You are already logged in!");
         }
 
         // Check if this user exists
         Long userId = databaseService.getUserIdIfExists(username);
         if (userId == null) {
+            logger.info("FAILED(this account doesn't exist): Logging in user with tgUsername: {}, username: {}", tgUsername, username);
             throw new SendToUserException("This user doesn't exist! You can register this user using /sign_up command.");
         }
 
@@ -78,83 +83,123 @@ public class BusinessLogicService {
         String passwordHashFromDB = databaseService.getPasswordHash(userId);
 
         if (!passwordHash.equals(passwordHashFromDB)) {
+            logger.info("FAILED(incorrect password is typed): Logging in user with tgUsername: {}, username: {}", tgUsername, username);
             throw new SendToUserException("Incorrect password for user " + username);
         }
         databaseService.logInUser(userId, tgUsername);
+        logger.info("SUCCESS: User {} successfully logged in", username);
     }
 
     public void logOut(String tgUsername) throws SendToUserException, SQLException {
+        logger.info("Logging out user with tgUsername: {}", tgUsername);
+
         Long userId = databaseService.getUserIdIfLoggedIn(tgUsername);
         if (userId == null) {
+            logger.info("FAILED(user is not logged in): Logging out user with tgUsername: {}", tgUsername);
             throw new SendToUserException("You are not logged in");
         }
         databaseService.logOutUser(userId, tgUsername);
+
+        logger.info("SUCCESS: User with tgUsername '{}' successfully logged out", tgUsername);
     }
 
     public String getHomeCurrency(String tgUsername) throws SendToUserException, SQLException {
+        logger.info("Getting home currency for user with tgUsername: {}", tgUsername);
+
         Long userId = databaseService.getUserIdIfLoggedIn(tgUsername);
         if (userId == null) {
+            logger.info("FAILED(user are not logged in): Getting home currency for user with tgUsername: {}", tgUsername);
             throw new SendToUserException("You are not logged in!");
         }
 
+        logger.info("SUCCESS: Getting home currency for user with tgUsername: {}", tgUsername);
         return databaseService.getHomeCurrency(userId);
     }
 
     public String getDefaultToCurrency(String tgUsername) throws SendToUserException, SQLException {
+        logger.info("Getting default 'to' currency for user with tgUsername: {}", tgUsername);
         Long userId = databaseService.getUserIdIfLoggedIn(tgUsername);
         if (userId == null) {
+            logger.info("FAILED(user is not logged in): Getting default 'to' currency for user with tgUsername: {}", tgUsername);
             throw new SendToUserException("You are not logged in!");
         }
-
+        logger.info("SUCCESS: Getting default 'to' currency for user with tgUsername: {}", tgUsername);
         return databaseService.getDefaultToCurrency(userId);
     }
 
     public String getDefaultPair(String tgUsername) throws SendToUserException, SQLException {
+        logger.info("Getting default currency pair for user with tgUsername: {}", tgUsername);
+
         Long userId = databaseService.getUserIdIfLoggedIn(tgUsername);
         if (userId == null) {
+            logger.info("FAILED(user is not logged in): Getting default currency pair for user with tgUsername: {}", tgUsername);
             throw new SendToUserException("You are not logged in!");
         }
 
+        logger.info("SUCCESS: Getting default currency pair for user with tgUsername: {}", tgUsername);
         return databaseService.getDefaultPair(userId);
     }
 
     public void chHomeCurrency(String tgUsername, String currency) throws SendToUserException, SQLException {
+        logger.info("Changing home currency for user with tgUsername: {} to {}", tgUsername, currency);
+
         Long userId = databaseService.getUserIdIfLoggedIn(tgUsername);
         if (userId == null) {
+            logger.info("FAILED(user is not logged in): Changing home currency for user with tgUsername: {} to {}", tgUsername, currency);
             throw new SendToUserException("You are not logged in!");
         }
 
+        if (currency.length() != 3) {
+            logger.info("FAILED(user has inputted a currency with more than 3 chars): Changing home currency for user with tgUsername: {} to {}", tgUsername, currency);
+            throw new SendToUserException("Currency should contain 3 chars (For ex. USD)");
+        }
+
         if (!databaseService.isCurrencyExists(currency)) {
+            logger.info("FAILED(user has inputted currency name that doesn't exist): Changing home currency for user with tgUsername: {} to {}", tgUsername, currency);
             throw new SendToUserException("Currency '" + currency + "' does not exist!");
         }
 
         databaseService.changeHomeCurrency(userId, currency);
-    }
 
-    public Boolean isCurrencyExists(String currency) throws SQLException {
-        return databaseService.isCurrencyExists(currency);
+        logger.info("SUCCESS: Home currency for user with tgUsername: {} successfully changed to {}", tgUsername, currency);
     }
 
     public void chDefaultPair(String tgUsername, String from, String to) throws SendToUserException, SQLException {
+        logger.info("Changing default currency pair for user with tgUsername: {} to {}-{}", tgUsername, from, to);
+
+        // Check that tgUsername is logged in and get userId
         Long userId = databaseService.getUserIdIfLoggedIn(tgUsername);
         if (userId == null) {
+            logger.info("FAILED(user is not logged in): Changing default currency pair for user with tgUsername: {} to {}-{}", tgUsername, from, to);
             throw new SendToUserException("You are not logged in!");
         }
 
+        // Check that valid string
+        if (from.length() != 3 || to.length() != 3) {
+            logger.info("FAILED(user has inputted a currency with more than 3 chars): Changing default currency pair for user with tgUsername: {} to {}-{}", tgUsername, from, to);
+            throw new SendToUserException("Currency should contain 3 chars (For ex. USD)");
+        }
+
         if (!databaseService.isCurrencyExists(from)) {
+            logger.info("FAILED(user has inputted currency name (from) that doesn't exist): Changing default currency pair for user with tgUsername: {} to {}-{}", tgUsername, from, to);
             throw new SendToUserException("Currency '" + from + "' does not exist!");
         }
 
         if (!databaseService.isCurrencyExists(to)) {
+            logger.info("FAILED(user has inputted currency name (to) that doesn't exist): Changing default currency pair for user with tgUsername: {} to {}-{}", tgUsername, from, to);
             throw new SendToUserException("Currency '" + to + "' does not exist!");
         }
 
         databaseService.changeDefaultPair(userId, from, to);
+        logger.info("SUCCESS: Default currency pair for user with tgUsername: {} successfully changed to {}-{}", tgUsername, from, to);
     }
 
     public String getExchangeRate(String tgUsername, String fromS, String toS, String amountS) throws SendToUserException, SQLException {
+        logger.info("Getting exchange rate for user with tgUsername: {}, from: {}, to: {}, amount: {}", tgUsername, fromS, toS, amountS);
+
         Long userId = databaseService.getUserIdIfLoggedIn(tgUsername);
         if (userId == null) {
+            logger.info("FAILED(user is not logged in): Getting exchange rate for user with tgUsername: {}, from: {}, to: {}, amount: {}", tgUsername, fromS, toS, amountS);
             throw new SendToUserException("You are not logged in!");
         }
 
@@ -182,9 +227,11 @@ public class BusinessLogicService {
         to = to.toUpperCase();
 
         if (!databaseService.isCurrencyExists(from)) {
+            logger.info("FAILED(user has inputted currency name (from) that doesn't exist): Getting exchange rate for user with tgUsername: {}, from: {}, to: {}, amount: {}", tgUsername, fromS, toS, amountS);
             throw new SendToUserException("Currency '" + from + "' does not exist!");
         }
         if (!databaseService.isCurrencyExists(to)) {
+            logger.info("FAILED(user has inputted currency name (to) that doesn't exist): Getting exchange rate for user with tgUsername: {}, from: {}, to: {}, amount: {}", tgUsername, fromS, toS, amountS);
             throw new SendToUserException("Currency '" + to + "' does not exist!");
         }
 
@@ -206,7 +253,7 @@ public class BusinessLogicService {
         Double rate = ratesObject.getDouble(to) / ratesObject.getDouble(from);
 
         databaseService.saveLogToConversionHistory(userId, databaseService.getCurrencyIdByName(from), databaseService.getCurrencyIdByName(to), amount, rate);
-
+        logger.info("SUCCESS: Getting exchange rate for user with tgUsername: {}, from: {}, to: {}, amount: {}", tgUsername, fromS, toS, amountS);
         return String.format(Locale.US, "%.2f", amount * rate);
     }
 
@@ -215,8 +262,12 @@ public class BusinessLogicService {
     }
 
     public String getHistory(String tgUsername, String dateFrom, String dateTo, String curFrom, String curTo) throws SendToUserException, IllegalArgumentException, SQLException {
+        logger.info("Getting conversion history for user with tgUsername: {}, dateFrom: {}, dateTo: {}, curFrom: {}, curTo: {}", tgUsername, dateFrom, dateTo, curFrom, curTo);
+
         Long userId = databaseService.getUserIdIfLoggedIn(tgUsername);
         if (userId == null) {
+            logger.info("FAILED(user is not logged in): Getting conversion history for user with tgUsername: {}, dateFrom: {}, dateTo: {}, curFrom: {}, curTo: {}", tgUsername, dateFrom, dateTo, curFrom, curTo);
+
             throw new SendToUserException("You are not logged in!");
         }
 
@@ -231,7 +282,8 @@ public class BusinessLogicService {
             startDate = LocalDate.parse(dateFrom, formatter);
             endDate = LocalDate.parse(dateTo, formatter);
         } else {
-            throw new IllegalArgumentException("dateFrom and dateTo both should be non null or null");
+            logger.error("FAILED(dateFrom and dateTo should be both non null or both null: Getting conversion history for user with tgUsername: {}, dateFrom: {}, dateTo: {}, curFrom: {}, curTo: {}", tgUsername, dateFrom, dateTo, curFrom, curTo);
+            throw new IllegalArgumentException("dateFrom and dateTo both should be both non null or both null");
         }
 
         if (startDate.isBefore(endDate) || startDate.equals(endDate)) {
@@ -254,6 +306,7 @@ public class BusinessLogicService {
                 } else if (curFrom != null && curTo != null) {
                     sb.append(" with ").append(curFrom).append("-").append(curTo).append(" :\n");
                 } else {
+                    logger.error("FAILED(logic error): Getting conversion history for user with tgUsername: {}, dateFrom: {}, dateTo: {}, curFrom: {}, curTo: {}", tgUsername, dateFrom, dateTo, curFrom, curTo);
                     throw new RuntimeException("Error: logic error");
                 }
                 sb.append("-----------------------------------------------------------------------\n");
@@ -261,9 +314,11 @@ public class BusinessLogicService {
                 for (String conversionHistory : history) {
                     sb.append(conversionHistory).append("\n");
                 }
+                logger.info("SUCCESS: Getting conversion history for user with tgUsername: {}, dateFrom: {}, dateTo: {}, curFrom: {}, curTo: {}", tgUsername, dateFrom, dateTo, curFrom, curTo);
                 return sb.toString();
             }
         } else {
+            logger.info("FAILED(start date cannot be after the end date): Getting conversion history for user with tgUsername: {}, dateFrom: {}, dateTo: {}, curFrom: {}, curTo: {}", tgUsername, dateFrom, dateTo, curFrom, curTo);
             return "The period is invalid the start date cannot be after the end date!";
         }
     }
