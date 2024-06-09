@@ -10,6 +10,7 @@ The Currency Converter Bot follows a typical Spring Framework architecture:
 - WebhookController: Controller class that handles incoming webhook updates from Telegram.
 - MyBot: The main bot class that processes user messages and interacts with the Telegram API.
 - DatabaseConfig: Configuration class for the database connection.
+- BusinessLogicService: Service class for a business logic.
 - DatabaseService: Service class for performing database operations.
 
 ## Features
