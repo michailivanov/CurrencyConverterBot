@@ -138,7 +138,7 @@ bot.token=<YOUR_TELEGRAM_BOT_TOKEN>
 
 currenciesRateApiUrl=https://currencyapi.net/api/v1/rates?key=<YOUR_CURRENCYAPI_TOKEN>&output=JSON
 
-spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
 spring.datasource.username=sa
 spring.datasource.password=
 ```
